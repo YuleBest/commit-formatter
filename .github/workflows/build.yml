@@ -1,0 +1,124 @@
+name: 跨平台构建
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+jobs:
+  build:
+    name: 构建 ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows targets
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: commit-formatter.exe
+            asset_name: commit-formatter-windows-x64.exe
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            artifact_name: commit-formatter.exe
+            asset_name: commit-formatter-windows-x86.exe
+          
+          # Linux targets
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: commit-formatter
+            asset_name: commit-formatter-linux-x64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            artifact_name: commit-formatter
+            asset_name: commit-formatter-linux-x64-musl
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            artifact_name: commit-formatter
+            asset_name: commit-formatter-linux-arm64
+          
+          # macOS targets
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: commit-formatter
+            asset_name: commit-formatter-macos-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: commit-formatter
+            asset_name: commit-formatter-macos-arm64
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+    - name: 设置 Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+    - name: 设置 Rust 缓存
+      uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ matrix.target }}
+    - name: 安装交叉编译依赖 (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+        fi
+        if [[ "${{ matrix.target }}" == "x86_64-unknown-linux-musl" ]]; then
+          sudo apt-get install -y musl-tools
+        fi
+    - name: 配置交叉编译 (Linux ARM64)
+      if: matrix.target == 'aarch64-unknown-linux-gnu'
+      run: |
+        echo '[target.aarch64-unknown-linux-gnu]' >> ~/.cargo/config.toml
+        echo 'linker = "aarch64-linux-gnu-gcc"' >> ~/.cargo/config.toml
+    - name: 构建二进制文件
+      run: cargo build --release --target ${{ matrix.target }}
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.asset_name }}
+        path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+        if-no-files-found: error
+
+  release:
+    name: 创建发布
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 下载所有构建产物
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: 创建发布压缩包
+      run: |
+        cd artifacts
+        for dir in */; do
+          artifact_name=$(basename "$dir")
+          cd "$dir"
+          if [[ "$artifact_name" == *"windows"* ]]; then
+            zip "../${artifact_name}.zip" *
+          else
+            tar -czf "../${artifact_name}.tar.gz" *
+          fi
+          cd ..
+        done
+
+    - name: 创建 GitHub 发布
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/*.zip
+          artifacts/*.tar.gz
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

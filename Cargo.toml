@@ -1,0 +1,9 @@
+[package]
+name = "commit-formatter"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
+inquire = "0.6"
+colored = "2.0"
