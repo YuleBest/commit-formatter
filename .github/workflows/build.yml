@@ -105,12 +105,6 @@ jobs:
     - name: 构建
       run: cargo build --release --target ${{ matrix.target }}
 
-    - name: strip（压缩 Android 可执行文件）
-      if: matrix.target == 'aarch64-linux-android'
-      run: |
-        ${NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-strip \
-          target/aarch64-linux-android/release/commit-formatter
-
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
       with:
