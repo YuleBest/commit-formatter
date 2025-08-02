@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+
 jobs:
   build:
     name: 构建 ${{ matrix.target }}
@@ -14,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Windows targets
+          # Windows
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             artifact_name: commit-formatter.exe
@@ -23,8 +24,8 @@ jobs:
             target: i686-pc-windows-msvc
             artifact_name: commit-formatter.exe
             asset_name: commit-formatter-windows-x86.exe
-          
-          # Linux targets
+
+          # Linux
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact_name: commit-formatter
@@ -37,8 +38,8 @@ jobs:
             target: aarch64-unknown-linux-gnu
             artifact_name: commit-formatter
             asset_name: commit-formatter-linux-arm64
-          
-          # macOS targets
+
+          # macOS
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: commit-formatter
@@ -47,17 +48,27 @@ jobs:
             target: aarch64-apple-darwin
             artifact_name: commit-formatter
             asset_name: commit-formatter-macos-arm64
+
+          # Android ARM64
+          - os: ubuntu-latest
+            target: aarch64-linux-android
+            artifact_name: commit-formatter
+            asset_name: commit-formatter-android-arm64
+
     steps:
     - name: 检出代码
       uses: actions/checkout@v4
+
     - name: 设置 Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         targets: ${{ matrix.target }}
+
     - name: 设置 Rust 缓存
       uses: Swatinem/rust-cache@v2
       with:
         key: ${{ matrix.target }}
+
     - name: 安装交叉编译依赖 (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -68,13 +79,34 @@ jobs:
         if [[ "${{ matrix.target }}" == "x86_64-unknown-linux-musl" ]]; then
           sudo apt-get install -y musl-tools
         fi
+
     - name: 配置交叉编译 (Linux ARM64)
       if: matrix.target == 'aarch64-unknown-linux-gnu'
       run: |
+        mkdir -p ~/.cargo
         echo '[target.aarch64-unknown-linux-gnu]' >> ~/.cargo/config.toml
         echo 'linker = "aarch64-linux-gnu-gcc"' >> ~/.cargo/config.toml
-    - name: 构建二进制文件
+
+    - name: 安装构建工具 (Android)
+      if: matrix.target == 'aarch64-linux-android'
+      run: |
+        cargo install cargo-ndk
+
+    - name: 设置 Android NDK
+      if: matrix.target == 'aarch64-linux-android'
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r27c
+
+    - name: 构建 Android 版本
+      if: matrix.target == 'aarch64-linux-android'
+      run: |
+        cargo ndk -t arm64-v8a -o target/${{ matrix.target }}/release build --release
+
+    - name: 构建其它平台
+      if: matrix.target != 'aarch64-linux-android'
       run: cargo build --release --target ${{ matrix.target }}
+
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
       with:
@@ -87,7 +119,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    
     steps:
     - name: 检出代码
       uses: actions/checkout@v4
