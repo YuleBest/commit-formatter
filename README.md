@@ -144,4 +144,4 @@ git commit -m "feat(auth): add user authentication system" -m "" -m "Implement J
 
 ## 许可证
 
-[PolyForm Noncommercial License 1.0.0](./LICENSE.md)（[中文简体版本](./LICENSE-zh-Hans.md)）
+[Yule License 1.0.0](./LICENSE.txt)
