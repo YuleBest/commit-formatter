@@ -98,13 +98,13 @@ jobs:
         echo "NDK_HOME=$PWD/android-ndk-r27c" >> $GITHUB_ENV
         cargo install cargo-ndk
 
-    - name: 构建
-      run: |
-        if [[ "${{ matrix.target }}" == "aarch64-linux-android" ]]; then
-          cargo ndk -t arm64-v8a -o target build --release
-        else
-          cargo build --release --target ${{ matrix.target }}
-        fi
+    - name: 构建（Android）
+      if: matrix.target == 'aarch64-linux-android'
+      run: cargo ndk -t arm64-v8a -o target build --release
+
+    - name: 构建（非 Android）
+      if: matrix.target != 'aarch64-linux-android'
+      run: cargo build --release --target ${{ matrix.target }}
 
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
