@@ -100,7 +100,7 @@ jobs:
 
     - name: 构建（Android）
       if: matrix.target == 'aarch64-linux-android'
-      run: cargo ndk -t arm64-v8a -o target -- build --release --bin commit-formatter
+      run: cargo ndk -t arm64-v8a -o target build --release --bin commit-formatter
     
     - name: 构建（非 Android）
       if: matrix.target != 'aarch64-linux-android'
