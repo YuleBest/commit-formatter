@@ -87,24 +87,7 @@ jobs:
         echo '[target.aarch64-unknown-linux-gnu]' >> ~/.cargo/config.toml
         echo 'linker = "aarch64-linux-gnu-gcc"' >> ~/.cargo/config.toml
 
-    - name: 安装构建工具 (Android)
-      if: matrix.target == 'aarch64-linux-android'
-      run: |
-        cargo install cargo-ndk
-
-    - name: 设置 Android NDK
-      if: matrix.target == 'aarch64-linux-android'
-      uses: nttld/setup-ndk@v1
-      with:
-        ndk-version: r27c
-
-    - name: 构建 Android 版本
-      if: matrix.target == 'aarch64-linux-android'
-      run: |
-        cargo ndk -t arm64-v8a -o target/${{ matrix.target }}/release build --release
-
-    - name: 构建其它平台
-      if: matrix.target != 'aarch64-linux-android'
+    - name: 构建
       run: cargo build --release --target ${{ matrix.target }}
 
     - name: 上传构建产物
