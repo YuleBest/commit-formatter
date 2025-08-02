@@ -2,6 +2,7 @@ use clap::{Arg, Command};
 use colored::*;
 use inquire::{Select, Text, Confirm};
 use std::process;
+use regex::Regex;
 
 // Angular commit 类型
 const COMMIT_TYPES: &[(&str, &str)] = &[
@@ -274,24 +275,32 @@ fn generate_commit_message(
     message
 }
 
+// 移除字符串中的ANSI颜色转义码
+fn remove_ansi_colors(s: &str) -> String {
+    let re = Regex::new("\x1b\\[[0-9;]*m").unwrap();
+    re.replace_all(s, "").to_string()
+}
+
 fn display_result(commit_message: &str) {
     println!("\n{}", "=== 生成的Commit消息 ===".bright_yellow().bold());
     println!("{}", commit_message.bright_white());
-    
+
     println!("\n{}", "=== Git命令 ===".bright_yellow().bold());
-    let git_command = generate_git_command(commit_message);
+    // 移除颜色转义符，用于生成 git 命令
+    let clean_commit_message = remove_ansi_colors(commit_message);
+    let git_command = generate_git_command(&clean_commit_message);
     println!("{}", git_command.bright_green());
-    
     println!("\n{}", "复制上面的git命令并在终端中执行即可提交！".cyan());
-    
+
     // 询问是否直接执行commit
     let execute = Confirm::new("是否直接执行git commit命令?")
         .with_default(false)
         .prompt()
         .unwrap_or(false);
-    
+
     if execute {
-        execute_git_commit(commit_message);
+        // 传递清除过颜色转义符的提交信息
+        execute_git_commit(&clean_commit_message);
     }
 }
 
