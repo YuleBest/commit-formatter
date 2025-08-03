@@ -2,7 +2,7 @@
 
 一个用 Rust 编写的命令行工具，帮助用户生成符合 Angular 规范的 Git commit 消息。 
 
-![图片描述](./github/images/introduce.gif)
+![图片描述](./.github/images/introduce.gif)
 
 ## 功能特性
 
