@@ -6,17 +6,17 @@ use regex::Regex;
 
 // Angular commit 类型
 const COMMIT_TYPES: &[(&str, &str)] = &[
-    ("feat", "新功能 (A new feature)"),
-    ("fix", "修复bug (A bug fix)"),
-    ("docs", "文档更新 (Documentation only changes)"),
-    ("style", "代码格式 (Changes that do not affect the meaning of the code)"),
-    ("refactor", "重构 (A code change that neither fixes a bug nor adds a feature)"),
-    ("perf", "性能优化 (A code change that improves performance)"),
-    ("test", "测试 (Adding missing tests or correcting existing tests)"),
-    ("build", "构建系统 (Changes that affect the build system or external dependencies)"),
-    ("ci", "CI配置 (Changes to our CI configuration files and scripts)"),
-    ("chore", "其他杂务 (Other changes that don't modify src or test files)"),
-    ("revert", "回滚 (Reverts a previous commit)"),
+    ("feat",    "新功能 - A new feature"),
+    ("fix",     "修复 bug - A bug fix"),
+    ("docs",    "文档更新 - Documentation only changes"),
+    ("style",   "代码格式 - Changes that do not affect code behavior"),
+    ("refactor","重构 - Code change that neither fixes a bug nor adds a feature"),
+    ("perf",    "性能优化 - A code change that improves performance"),
+    ("test",    "测试 - Adding missing tests or correcting existing ones"),
+    ("build",   "构建系统 - Changes that affect the build system or external dependencies"),
+    ("ci",      "CI 配置 - Changes to CI configuration files and scripts"),
+    ("chore",   "其他杂务 - Other changes that don't modify src or test files"),
+    ("revert",  "回滚 - Revert a previous commit"),
 ];
 
 fn main() {
@@ -78,20 +78,43 @@ fn run_interactive_mode() {
 }
 
 fn select_commit_type() -> String {
+    use unicode_width::UnicodeWidthStr;
+
     let options: Vec<String> = COMMIT_TYPES
         .iter()
-        .map(|(t, desc)| format!("{}: {}", t.bright_green(), desc))
+        .map(|(t, desc)| {
+            let parts: Vec<&str> = desc.splitn(2, " - ").collect();
+            let zh = parts.get(0).unwrap_or(&"");
+            let en = parts.get(1).unwrap_or(&"");
+
+            let type_str = format!("{:<10}", t);
+            let zh_width = UnicodeWidthStr::width(*zh);
+            let zh_pad = 12_usize.saturating_sub(zh_width);
+            let zh_str = format!("{}{}", zh, " ".repeat(zh_pad));
+
+            format!(
+                "{}{} - {}",
+                type_str.bright_green(),
+                zh_str,
+                en
+            )
+        })
         .collect();
-    
-    let selection = Select::new("选择commit类型:", options)
+
+    let selection = Select::new("选择 commit 类型:", options)
+        .with_page_size(11)
         .prompt()
         .unwrap_or_else(|_| {
             println!("{}", "操作已取消".red());
             process::exit(1);
         });
-    
-    // 提取类型名称
-    selection.split(':').next().unwrap().trim().to_string()
+
+    selection
+        .split_whitespace()
+        .next()
+        .unwrap()
+        .trim()
+        .to_string()
 }
 
 fn input_scope() -> Option<String> {

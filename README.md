@@ -2,6 +2,8 @@
 
 一个用 Rust 编写的命令行工具，帮助用户生成符合 Angular 规范的 Git commit 消息。 
 
+![图片描述](./github/images/introduce.gif)
+
 ## 功能特性
 
 - 交互式界面，引导用户逐步创建 commit 消息
@@ -12,19 +14,22 @@
 
 ## Angular Commit 规范
 
-本工具支持以下 commit 类型：
+| 类型      | 中文含义     | 英文说明                                      |
+|-----------|--------------|-----------------------------------------------|
+| **feat**  | 新功能       | A new feature                                 |
+| **fix**   | 修复 bug     | A bug fix                                     |
+| **docs**  | 文档         | Documentation only changes                    |
+| **style** | 代码格式     | Changes that do not affect code behavior (e.g. formatting, missing semicolons, etc.) |
+| **refactor** | 代码重构 | A code change that neither fixes a bug nor adds a feature |
+| **perf**  | 性能优化     | A code change that improves performance       |
+| **test**  | 添加测试     | Adding missing tests or correcting existing ones |
+| **build** | 构建系统     | Changes that affect the build system or external dependencies (e.g. webpack, npm) |
+| **ci**    | 持续集成配置 | Changes to CI configuration files and scripts (e.g. GitHub Actions, Travis, Circle) |
+| **chore** | 杂务         | Other changes that don't modify src or test files |
+| **revert**| 回滚         | Reverts a previous commit                     |
 
-- **feat**: 新功能 (A new feature)
-- **fix**: 修复 bug (A bug fix) 
-- **docs**: 文档更新 (Documentation only changes)
-- **style**: 代码格式 (Changes that do not affect the meaning of the code)
-- **refactor**: 重构 (A code change that neither fixes a bug nor adds a feature)
-- **perf**: 性能优化 (A code change that improves performance)
-- **test**: 测试 (Adding missing tests or correcting existing tests)
-- **build**: 构建系统 (Changes that affect the build system or external dependencies)
-- **ci**: CI 配置 (Changes to our CI configuration files and scripts)
-- **chore**: 其他杂务 (Other changes that don't modify src or test files)
-- **revert**: 回滚 (Reverts a previous commit)
+> - 所有 commit 都应遵循格式：`<type>(<scope>): <subject>`
+> - 示例：`feat(login): 添加用户登录功能`
 
 ## 安装
 
