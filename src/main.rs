@@ -21,7 +21,7 @@ const COMMIT_TYPES: &[(&str, &str)] = &[
 
 fn main() {
     let app = Command::new("commit-formatter")
-        .version("v1.0.0-alpha")
+        .version("v1.0.0-beta")
         .author("Yule")
         .about("生成符合Angular规范的Git commit消息")
         .arg(
