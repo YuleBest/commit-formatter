@@ -5,7 +5,7 @@ use std::process;
 use regex::Regex;
 
 // Angular commit 类型
-const COMMIT_TYPES: &[(&str, &str)] = &[
+const COMMIT_TYPES: &[(&str, &str); 11] = &[
     ("feat",    "新功能 - A new feature"),
     ("fix",     "修复 bug - A bug fix"),
     ("docs",    "文档更新 - Documentation only changes"),
@@ -63,6 +63,9 @@ fn run_interactive_mode() {
     // 6. 输入关联的issue (可选)
     let issues = input_issues();
     
+    // 7. 是否添加跳过 ci 标志
+    let skip_ci = input_skip_ci();
+    
     // 生成commit消息
     let commit_message = generate_commit_message(
         &commit_type,
@@ -71,6 +74,7 @@ fn run_interactive_mode() {
         &body,
         &breaking_change,
         &issues,
+        skip_ci,
     );
     
     // 显示结果
@@ -243,6 +247,13 @@ fn input_issues() -> Option<String> {
     }
 }
 
+fn input_skip_ci() -> bool {
+    Confirm::new("是否添加跳过 ci 标志 ([skip ci])?")
+        .with_default(false)
+        .prompt()
+        .unwrap_or(false)
+}
+
 fn generate_commit_message(
     commit_type: &str,
     scope: &Option<String>,
@@ -250,6 +261,7 @@ fn generate_commit_message(
     body: &Option<String>,
     breaking_change: &Option<String>,
     issues: &Option<String>,
+    skip_ci: bool,
 ) -> String {
     let mut message = String::new();
     
@@ -293,6 +305,10 @@ fn generate_commit_message(
             }
         }
         message.pop(); // 移除最后的换行符
+    }
+    
+    if skip_ci {
+        message.push_str("\n\n[skip ci]");
     }
     
     message

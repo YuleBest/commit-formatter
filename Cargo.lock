@@ -80,6 +80,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
 
 [[package]]
+name = "cf"
+version = "1.0.0"
+dependencies = [
+ "clap",
+ "colored",
+ "inquire",
+ "regex",
+ "unicode-width",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -139,17 +150,6 @@ checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
  "windows-sys 0.59.0",
-]
-
-[[package]]
-name = "commit-formatter"
-version = "1.0.0"
-dependencies = [
- "clap",
- "colored",
- "inquire",
- "regex",
- "unicode-width",
 ]
 
 [[package]]
